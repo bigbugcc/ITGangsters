@@ -36,13 +36,9 @@ def getSnaps():
     print('### 获取快照信息...')
     try:
         req = models.DescribeSnapshotsRequest()
-        params = {
-
-        }
+        params = {}
         req.from_json_string(json.dumps(params))
-
         resp = client.DescribeSnapshots(req)
-        # print(resp.to_json_string())
         resp = json.loads(resp.to_json_string())
         # print(resp)
         snapnum=0
@@ -71,13 +67,9 @@ def getInstances():
     print('### 获取轻量云实例ID...')
     try:
         req = models.DescribeInstancesRequest()
-        params = {
-
-        }
+        params = {}
         req.from_json_string(json.dumps(params))
-
         resp = client.DescribeInstances(req)
-        # print(resp.to_json_string())
         resp = json.loads(resp.to_json_string())
         # print(resp)
         insnum=0        
@@ -117,9 +109,9 @@ def createSnap(inslist):
             req.from_json_string(json.dumps(params))
             resp = client.CreateInstanceSnapshot(req)
             resp = json.loads(resp.to_json_string())
-            # print(resp.to_json_string())
+            # print(resp)
             if(resp['SnapshotId']!=''):
-                print(f'>>> 快照创建成功,[ID] {resp["SnapshotId"]},[名称] {snapname},[关联实例ID] {resp["SnapshotId"]}')
+                print(f'>>> 快照创建成功,[ID] {resp["SnapshotId"]},[名称] {snapname},[关联实例ID] {i}')
     except TencentCloudSDKException as err:
         print(err)
 
@@ -132,13 +124,11 @@ def delSanp(snapids):
             "SnapshotIds": snapids
         }
         req.from_json_string(json.dumps(params))
-
-        resp = client.DeleteSnapshots(req)
-        # print(resp.to_json_string())
+        resp = client.DeleteSnapshots(req)        
         resp = json.loads(resp.to_json_string())
+        # print(resp)
         if(resp['RequestId']!=''):
             print(f'>>> 删除快照 {snapids} 成功!')
-
     except TencentCloudSDKException as err:
         print(err)
 
@@ -163,7 +153,6 @@ def getConf():
             skey=conf['SecretKey']
             region=conf['Region']
             print('>>> 配置文件已加载!')
-
         # 初始化腾讯SDK连接
         try:
             cred = credential.Credential(sid, skey)
