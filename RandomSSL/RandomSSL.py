@@ -1,44 +1,45 @@
+#!/bin/env python3
 # -*- coding: UTF-8 -*-
+
 import random
 import os
-import filecmp
-        
-dirnum = 0
+import shutil
+import hashlib
+
 filenum = 0
 num = 0
-#ssl证书路径
-sslpath = '/your/ssl/path/'
-#站点ssl路径
-sitepath = '/your/site/path'
+# ssl证书路径(末尾需加/)
+sslpath = '/opt/xuissl/cert/'
+# 站点ssl路径(末尾需加/)
+sitepath = '/www/server/panel/vhost/cert/yun.fcwys.cc/'
 # nginx路径(末尾需加/)
 nginxpath = '/www/server/nginx/'
 
+# 获取证书数量,证书名称统一命名为 1.key 1.pem 2.key 2.pem 以此类推
 filenum=int(len(os.listdir(sslpath))/2)
 
+# 证书对比
 while True:
     #随机数
     num = random.randint(1, filenum)
-    now = sslpath+ str(num) +'.key'
-    if not filecmp.cmp(sitepath+'privkey.pem', now):
+    now = sslpath + str(num) +'.key'
+    sitefile = open(f'{sitepath}privkey.pem','rb')
+    nowfile = open(now,'rb')
+    # 对比文件MD5是否一致
+    if not hashlib.md5(sitefile.read()).hexdigest() == hashlib.md5(nowfile.read()).hexdigest():
         break;
-    print('[INFO] SSL Repeat ['+str(num)+']!')
+    sitefile.close()
+    nowfile.close()
+    print('[INFO] SSL Repeat: '+str(num))
 print('[INFO] SSL NUM: '+str(num))
 
-#更换私钥
-with open(sslpath + str(num) + '.key') as f:
-    contents = f.read().rstrip()
-    with open(f'{sitepath}privkey.pem','w') as k:
-        k.write(contents)
-        k.close()
-        print('[INFO] SSL Key writed.')
+#复制更换私钥
+shutil.copyfile(f'{sslpath}{str(num)}.key',f'{sitepath}privkey.pem')
+print('[INFO] SSL Key writed.')
 
-#更换证书
-with open(sslpath + str(num) + '.pem') as f:
-    contents = f.read().rstrip()
-    with open(f'{sitepath}fullchain.pem','w') as k:
-        k.write(contents)
-        k.close()
-        print('[INFO] SSL Cert writed.')
+#复制更换证书
+shutil.copyfile(f'{sslpath}{str(num)}.pem',f'{sitepath}fullchain.pem')
+print('[INFO] SSL Cert writed.')
 
 # 重载Nginx服务
 os.system(f'{nginxpath}sbin/nginx -p {nginxpath} -s reload')
