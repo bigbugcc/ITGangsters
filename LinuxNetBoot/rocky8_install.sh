@@ -21,19 +21,19 @@ else
     partnum=$(lsblk -l | grep / | awk '{print $2}' | cut -d ':' -f 2)
 fi;
 
-#判断磁盘模式(mbr或gpt),仅红帽系判断是否是中文语言处理
-if [ ${ostype} == 'centos' -o ${ostype} == 'rocky' -o ${ostype} == 'rhel' -o ${ostype} == 'fedora' -a "$(localectl | grep zh_CN)" != "" ]; then
-	  diskmode=$(/usr/sbin/fdisk -l | grep "dos" | awk '{print $1}' | cut -d '：' -f 2)
+#判断磁盘模式(mbr或gpt)
+if [ $(fdisk -l | grep dos | sed 's/[^a-zA-Z0-9]//g') != "" ]; then
+    #mbr模式
+	diskmode=$(fdisk -l | grep dos | sed 's/[^a-zA-Z0-9]//g')
+	diskmode=${diskmode:$((${#diskmode} - 3))}
+	echo 'Disk mode is mbr.'
+	bootpart=msdos${partnum}
 else
-    diskmode=$(/usr/sbin/fdisk -l | grep "Disklabel type:" | awk '{print $3}')
-fi
-
-if [ ${diskmode} == 'gpt' ];then
+    #gpt模式
+    diskmode=$(fdisk -l | grep gpt | sed 's/[^a-zA-Z0-9]//g')
+	diskmode=${diskmode:$((${#diskmode} - 3))}
 	echo 'Disk mode is gpt.'
 	bootpart=gpt${partnum}
-elif [ ${diskmode} == 'dos' ];then
-	echo 'Disk mode is gpt.'
-	bootpart=msdos${partnum}
 fi
 
 #更改启动菜单
